@@ -1,6 +1,10 @@
+#This program is tic tac toe with minimax algorithm
 import random
 import math
 import time
+def welcome_message():
+    print("Welcome to tic tac toe minimax")
+
 def human_choose_letter():
     human_letter = input("please choose your letter[x or o]").lower()
     while human_letter != 'x' and human_letter != 'o':
@@ -12,167 +16,206 @@ def human_choose_letter():
     return human_letter
 
 def print_numbers_board():
+    print("This is the representation of each square")
+    print('')
     print('|' + '0' + '|' + '1' + '|' + '2' + '|')
     print('|' + '3' + '|' + '4' + '|' + '5' + '|')
     print('|' + '6' + '|' + '7' + '|' + '8' + '|')
+    print('')
+    time.sleep(3)
+    print("At your turn, you will be asked for picking a number which represents the square you want to write your letter in")
+    print('')
+    print("after you choose the number, click \"enter\" and your turn will be commited")
 
-def gameplay(board):
-    print("welcome to tic tac toe\n")
+def gamePlay(board):
+    #This function included the whole proccess of the gameplay
+
+    #openning
+    welcome_message()
     time.sleep(0.8)
-    count_turn = 0
     human_letter = human_choose_letter()
+    time.sleep(0.8)
+    if human_letter == 'x':
+        computer_letter = 'o'
+    else:
+        computer_letter = 'x'
     time.sleep(0.8)
     print_numbers_board()
     time.sleep(0.8)
-    print("Ok. let's start:\n")
-    time.sleep(0.8)
+    turn_num = 0
+
+    #moves
+    while is_empty_places(board):
+        # human's turn
+        print("human's turn:")
+        time.sleep(0.8)
+        place = human_choose_move(human_letter,board)
+        row = int(place / 3)
+        col = int(place % 3)
+        if make_and_print_move(board,row,col,human_letter,computer_letter,human_letter,turn_num):
+            return
+        turn_num += 1
+        #it is a tie
+        if not is_empty_places(board):
+            print("It is a tie!")
+            return
+        # computer's turn
+        print("computer's turn:")
+        time.sleep(0.8)
+        computer_position = minimaxComputerChooseMove(board,computer_letter,human_letter,turn_num,True)['position']
+        if make_and_print_move(board,computer_position[0],computer_position[1],computer_letter,computer_letter,human_letter,turn_num):
+            return
+        turn_num += 1
+        #it is a tie
+        if not is_empty_places(board):
+            print("It is a tie!")
+            return
+
+def make_and_print_move(board,row,col,letter,computer_letter,human_letter,turn_num):
+    # this function makes the move of the player and prints the updated board
+    # also checks if there is a winner and returns True.else,returns False
+    board[row][col] = letter
     print_board(board)
-    time.sleep(0.8)
-    if(human_letter =='x'):
-        computer_letter ='o'
-    else:
-        computer_letter ='x'
-    while (count_turn < 9):
-        print("human's turn: \n")
-        time.sleep(0.8)
-        place = input("please pick a place to put your letter[0-8]\n")
-        try:
-            place = int(place)
-        except ValueError:
-            print("Invalid value.please pick a number between 0-8\n")
-            continue
-        if place < 0 or place > 8:
-            print("Invalid value.please pick a number between 0-8\n")
-            continue
-        if board[int(place/3)][int(place % 3)] != ' ':
-            print("this place already taken. try another place")
-            continue
-        board[int(place/3)][int(place % 3)] = human_letter
-        count_turn += 1
-        time.sleep(0.8)
-        print_board(board)
-        if x_is_winner(board):
-            print("x wins!")
-            return
-        if o_is_winner(board):
-            print("o wins!")
-            return
-        if(count_turn == 9):
-            break
-        print("computer's turn: \n")
-        time.sleep(0.8)
-        if count_turn == 0:
-            place = random.randint(0,8)
-            while  board[int(place/3)][int(place % 3)] == human_letter:
-                place = random.randint(0,8)
-            board[int(place / 3)][int(place % 3)] = computer_letter
-        else:
-            place = (minimax(human_letter,computer_letter,count_turn,board,computer_letter))['position']
-            board[int(place / 3)][int(place % 3)] = computer_letter
-
-        count_turn += 1
-        print_board(board)
-        if x_is_winner(board):
-            print("x wins!")
-            return
-        if o_is_winner(board):
-            print("o wins!")
-            return
-    print("it's a tie!")
-    return
-
-def minimax(human_letter,computer_letter,count_turn,board,player):
-    max_player = computer_letter
-    other_player = 'o' if player == 'x' else 'x'
-
-    if (other_player =='o' and o_is_winner(board)) or (other_player =='x' and x_is_winner(board)):
-        return {'position': None, 'score': 1 * (9 - count_turn + 1) if other_player == max_player
-        else -1 * (9 - count_turn + 1)}
-
-    elif 9 - count_turn == 0:
-        return {'position': None, 'score': 0}
-
-    if player == max_player:
-        best = {'position': None, 'score': -math.inf}
-    else:
-        best = {'position': None, 'score': math.inf}
-
-    for possible_move in available_moves(board):
-        board[int(possible_move /3)][int(possible_move %3)] = player
-        sim_score =minimax(human_letter,computer_letter,count_turn,board,human_letter)
-
-        board[int(possible_move /3)][int(possible_move %3)] = ' '
-        o_is_winner(board)
-        x_is_winner(board)
-        sim_score['position'] = possible_move
-
-        if player == max_player:
-            if sim_score['score'] > best['score']:
-                best = sim_score
-        else:
-            if sim_score['score'] < best['score']:
-                best = sim_score
-
-    return best
-
-
-def x_is_winner(board):
-    #win in row
-    if board[0][0] == board[0][1] and board[0][1] == board[0][2] and board[0][2] =='x':
-        return True
-    if board[1][0] == board[1][1] and board[1][1] == board[1][2] and board[1][2] =='x':
-        return True
-    if board[2][0] == board[2][1] and board[2][1] == board[2][2] and board[2][2] =='x':
-        return True
-    # win in column
-    if board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[2][0] =='x':
-        return True
-    if board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[2][1] =='x':
-        return True
-    if board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[2][2] =='x':
-        return True
-    #win in diagonal
-    if board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[2][2] == 'x':
-        return True
-    if board[0][2] == board[1][1] and board[1][1] == board[2][0] and board[2][0] == 'x':
-        return True
-    return False
-
-def o_is_winner(board):
-    #win in row
-    if board[0][0] == board[0][1] and board[0][1] == board[0][2] and board[0][2] =='o':
-        return True
-    if board[1][0] == board[1][1] and board[1][1] == board[1][2] and board[1][2] =='o':
-        return True
-    if board[2][0] == board[2][1] and board[2][1] == board[2][2] and board[2][2] =='o':
-        return True
-    # win in column
-    if board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[2][0] =='o':
-        return True
-    if board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[2][1] =='o':
-        return True
-    if board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[2][2] =='o':
-        return True
-    #win in diagonal
-    if board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[2][2] == 'o':
-        return True
-    if board[0][2] == board[1][1] and board[1][1] == board[2][0] and board[2][0] == 'o':
+    if check_for_winner(board,computer_letter,human_letter,turn_num):
         return True
     return False
 
 def print_board(board):
+    #This function prints the board
     for row in range(3):
         print('|'+board[row][0] +'|' +board[row][1] +'|' +board[row][2]+'|')
 
+def human_choose_move(human_letter,board):
+    #This function returns the place that the human player picked
+
+    check_valid_place_value = False
+    while(not check_valid_place_value):
+        #input checks
+        place = input("please pick a place to put your letter[0-8]\n")
+
+        # if the input is a number
+        try:
+            place = int(place)
+        except ValueError:
+            print("Invalid value\n")
+            continue
+
+        # if the number can represent a place in the board
+        if place < 0 or place > 8:
+            print("Invalid value\n")
+            continue
+
+        # if the place is not already taken
+        if board[int(place / 3)][int(place % 3)] != ' ':
+            print("this place already taken. try another place\n")
+            continue
+        check_valid_place_value = True
+
+    return place
+
+def minimaxComputerChooseMove(board,computer_letter,human_letter,turn_num,isMaxPlayer):
+    # this function checks all the options and finds the best move the computer player can make
+
+    # calculate the score
+    winner_and_score = calculate_score_and_winner(board,computer_letter,human_letter,turn_num)
+
+    #if someone has won, if max_player. the score will be possitive. else, the score will be negative
+    if winner_and_score['winner'] == computer_letter or winner_and_score['winner'] == human_letter:
+        return {'position':[-1,-1],'score':winner_and_score['score']}
+
+    # tie
+    if not is_empty_places(board):
+        return {'position':[-1,-1],'score':0}
+
+    if isMaxPlayer:
+        best = {'position': [-1,-1], 'score': -math.inf}
+    else:
+        best = {'position': [-1,-1], 'score': math.inf}
+
+    for possible_move in available_moves(board):
+        #1.making the move
+        if isMaxPlayer:
+            board[possible_move[0]][possible_move[1]] = computer_letter
+        else:
+            board[possible_move[0]][possible_move[1]] = human_letter
+
+        #2. checking the other options
+        tmp_score_and_position = minimaxComputerChooseMove(board, computer_letter, human_letter,turn_num + 1, False)
+        #3. undu the move
+        board[possible_move[0]][possible_move[1]] = ' '
+        winner_and_score['winner'] ='t'
+        # put the possible move in the tmp_score
+        tmp_score_and_position['position'] = possible_move
+
+        #4. deciding which one is the best
+        if isMaxPlayer:
+            if best['score'] < tmp_score_and_position['score']:
+                best = tmp_score_and_position
+
+        else:
+            if best['score'] > tmp_score_and_position['score']:
+                best = tmp_score_and_position
+
+    return best
+
+def is_empty_places(board):
+    #this fuction returns True if there are empty places in the board.else, it returns False
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == ' ':
+                return True
+    return False
+
 def available_moves(board):
+    #This function returns a list of the available moves that remains
     moves =[]
-    for i in range(9):
-        if board[int(i /3)][int(i % 3)] == ' ':
-            moves.append(i)
+    for i in range(3):
+        for j in range(3):
+            if(board[i][j] == ' '):
+                moves.append([i,j])
     return moves
+
+def calculate_score_and_winner(board,computer_letter,human_letter,turn_num):
+    # this function calculates the current score and the current winner of the board (max_player = computer, min_player = human)
+
+    # win in row
+    for row in range(3):
+        if board[row][0] == board[row][1] and board[row][1] == board[row][2]:
+            if board[row][0] == computer_letter:
+                return {'winner':computer_letter,'score':1 * (10 - turn_num)}
+            if board[row][0] == human_letter:
+                return {'winner':human_letter,'score':-1 * (10 - turn_num)}
+
+    # win in column
+    for col in range(3):
+        if board[0][col] == board[1][col] and board[1][col] == board[2][col]:
+            if board[0][col] == computer_letter:
+                return {'winner':computer_letter,'score':1 * (10 - turn_num)}
+            if board[0][col] == human_letter:
+                return {'winner': human_letter, 'score': -1 * (10 - turn_num)}
+
+    #win in diagnol
+    if (board[0][0] == board[1][1] and board[1][1] == board[2][2]) or (board[0][2] == board[1][1] and board[1][1] == board[2][0]):
+        if board[1][1] == computer_letter:
+            return {'winner': computer_letter, 'score': 1 * (10 - turn_num)}
+        if board[1][1] == human_letter:
+            return {'winner': human_letter, 'score': -1 * (10 - turn_num)}
+
+    # tie (no one has won) 't' = tie
+    return {'winner': 't' , 'score':0}
+
+def check_for_winner(board,computer_letter,human_letter,turn_num):
+    # this function checks if there is a winner to the game, prints him and returns True.else, it returns False
+    if calculate_score_and_winner(board, computer_letter, human_letter, turn_num)['winner'] == computer_letter:
+        print("computer wins!")
+        return True
+    if calculate_score_and_winner(board, computer_letter, human_letter, turn_num)['winner'] == human_letter:
+        print("human wins!")
+        return True
+    return False
 
 if __name__ =='__main__':
     board =[[' ',' ',' '],
             [' ',' ',' '],
             [' ',' ',' ']]
-    gameplay(board)
+    gamePlay(board)
