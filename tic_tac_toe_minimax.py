@@ -140,7 +140,10 @@ def minimaxComputerChooseMove(board,computer_letter,human_letter,turn_num,isMaxP
             board[possible_move[0]][possible_move[1]] = human_letter
 
         #2. checking the other options
-        tmp_score_and_position = minimaxComputerChooseMove(board, computer_letter, human_letter,turn_num + 1, False)
+        if isMaxPlayer:
+            tmp_score_and_position = minimaxComputerChooseMove(board, computer_letter, human_letter,turn_num + 1, False)
+        else:
+            tmp_score_and_position = minimaxComputerChooseMove(board, computer_letter, human_letter, turn_num + 1,True)
         #3. undu the move
         board[possible_move[0]][possible_move[1]] = ' '
         winner_and_score['winner'] ='t'
